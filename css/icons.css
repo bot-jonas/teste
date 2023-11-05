@@ -1,0 +1,45 @@
+.icon {
+	display: block;
+	mask-size: contain;
+	-webkit-mask-size: contain;
+}
+
+.icon-layout-three-columns {
+	mask-image: url("../images/icons/layout-three-columns.svg");
+	-webkit-mask-image: url("../images/icons/layout-three-columns.svg");
+}
+
+.icon-layout-three-rows {
+	mask-image: url("../images/icons/layout-three-rows.svg");
+	-webkit-mask-image: url("../images/icons/layout-three-rows.svg");
+}
+
+.icon-table {
+	mask-image: url("../images/icons/table.svg");
+	-webkit-mask-image: url("../images/icons/table.svg");
+}
+
+.icon-graph-up {
+	mask-image: url("../images/icons/graph-up.svg");
+	-webkit-mask-image: url("../images/icons/graph-up.svg");
+}
+
+.icon-three-dots {
+	mask-image: url("../images/icons/three-dots.svg");
+	-webkit-mask-image: url("../images/icons/three-dots.svg");
+}
+
+.icon-three-dots-vertical {
+	mask-image: url("../images/icons/three-dots-vertical.svg");
+	-webkit-mask-image: url("../images/icons/three-dots-vertical.svg");
+}
+
+.icon-caret-down-fill {
+	mask-image: url("../images/icons/caret-down-fill.svg");
+	-webkit-mask-image: url("../images/icons/caret-down-fill.svg");
+}
+
+.icon-caret-right-fill {
+	mask-image: url("../images/icons/caret-right-fill.svg");
+	-webkit-mask-image: url("../images/icons/caret-right-fill.svg");
+}

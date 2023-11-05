@@ -1,0 +1,86 @@
+#workspace {
+	border: 1px solid #000;
+	width: calc(100% - 2 * var(--column-gap));
+	padding: var(--row-gap) var(--column-gap);
+	height: calc(100vh - 2 * var(--row-gap));
+	max-width: 960px;
+	overflow-x: hidden;
+}
+
+.empty-container {
+	min-height: 150px;
+	background-color: #cce8ff66;
+}
+
+.element {
+	width: calc(var(--width-span) * (var(--container-width) - (var(--num-columns) - 1) * var(--column-gap)) / var(--num-columns) + (var(--width-span) - 1) * var(--column-gap));
+	flex-shrink: 0;
+	position: relative;
+}
+
+.element.placeholder {
+	background-color: #a0d4ff;
+}
+
+.widget-hover,
+.element.selected,
+.element:hover,
+.empty-container:hover, 
+#layout-tree .layout-tree-value:hover {
+	outline: solid 2px blue;
+}
+
+.container.selected {
+	outline: solid 2px lime;
+}
+
+.selected-widget {
+	outline: solid 2px magenta !important;
+}
+
+.options {
+	position: absolute;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	z-index: 1;
+	user-select: none;
+}
+
+.options > .icon {
+	width: 16px;
+	height: 16px;
+	background-color: #000;
+}
+
+.options > .icon {
+	cursor: pointer;
+}
+
+.options.options-list-hidden .options-list {
+	display: none;
+}
+
+.options .options-list {
+	display: flex;
+	flex-direction: column;
+	margin-top: 4px;
+	background-color: white;
+	border: 1px solid #ddd;
+}
+
+.options .options-list .option-item {
+	padding: 4px;
+	border-top: 1px solid #ddd;
+	font-size: 14px;
+}
+
+.options .options-list .option-item:first-child {
+	border-top: none;
+}
+
+.options .options-list .option-item:hover {
+	cursor: pointer;
+	background-color: #eee;
+}

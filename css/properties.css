@@ -1,0 +1,32 @@
+#properties .properties-title {
+	font-size: 14px;
+	margin-bottom: 4px;
+}
+
+#properties .property-id {
+	font-size: 12px;
+	margin-bottom: 4px;
+}
+
+#properties .properties-content {
+	display: flex;
+	flex-direction: column;
+}
+
+#properties .properties-content .property {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+
+#properties .properties-content .property label {
+	font-size: 12px;
+}
+
+#properties .properties-content .property input[type=number] {
+	width: 50px;
+}
+
+#properties .properties-content .property input[type=text] {
+	width: 100px;
+}

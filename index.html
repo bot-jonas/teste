@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Layout Builder</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/highcharts-more.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<main class="debug">
+		<div class="panel">
+			<div id="toolbox"></div>
+		</div>
+
+		<div id="workspace"></div>
+
+		<div class="panel">
+			<div id="layout-tree">
+				<h4 class="layout-tree-title">Layout Tree</h4>
+
+				<div class="layout-tree-content"></div>
+			</div>
+
+			<div id="properties">
+				<h4 class="properties-title">Propriedades</h4>
+
+				<div class="properties-content">
+				</div>
+			</div>
+		</div>
+	</main>
+</body>
+<script>
+	function build_layout_recursively(root_element, layout) {
+		let container_kind = null; // Initial root
+
+		if(root_element.classList.contains("container")) {
+			container_kind = root_element.classList.contains("row-container") ? "row" : "column";
+		}
+
+		if(layout.type === "container") {
+			const container = generate_container(layout);
+			root_element.appendChild(container);
+			root_element.classList.remove("empty-container");
+			layout.children.forEach(child => build_layout_recursively(container, child));
+
+			if(container_kind === "row") {
+				let width_span = parseInt(root_element.getAttribute("width-span") ?? 0);
+				width_span += parseInt(container.getAttribute("width-span") ?? 0);
+
+				root_element.setAttribute("width-span", width_span); 
+			} else if(container_kind === "column") {
+				let width_span = parseInt(root_element.getAttribute("width-span") ?? 0);
+				width_span = Math.max(width_span, parseInt(container.getAttribute("width-span") ?? 0));
+
+				root_element.setAttribute("width-span", width_span);
+			}
+		} else if(layout.type === "element") {
+			root_element.classList.remove("empty-container");
+			root_element.appendChild(generate_element(layout));
+
+			if(container_kind === "row") {
+				let width_span = parseInt(root_element.getAttribute("width-span") ?? 0);
+				width_span += layout.options.width;
+
+				root_element.setAttribute("width-span", width_span);
+			} else if(container_kind === "column") {
+				let width_span = parseInt(root_element.getAttribute("width-span") ?? 0);
+				width_span = Math.max(width_span, layout.options.width);
+
+				root_element.setAttribute("width-span", width_span);
+			}
+		}
+	}
+
+	let selected_container;
+	let selected_element;
+	let num_columns = 3;
+	const placeholder = document.createElement("div");
+	const placeholder_width_span = 1;
+	placeholder.classList.add("element");
+	placeholder.classList.add("placeholder");
+	placeholder.style.setProperty("--width-span", placeholder_width_span); 
+	placeholder.style.height = "100px";
+
+	window.addEventListener("dragstart", e => {
+		e.target.classList.add("dragging");
+	});
+
+	window.addEventListener("dragend", e => {
+		e.target.classList.remove("dragging");
+		if(selected_container) selected_container.classList.remove("selected");
+		if(selected_element) selected_element.classList.remove("selected");
+
+		// Trocar placeholder por elemento
+		if(placeholder.parentElement) {
+			const widget_type = e.target.getAttribute("widget-type");
+			const widget_kind = e.target.getAttribute("widget-kind");
+			
+			let el;
+			if(widget_type === "container") {
+				let layout;
+				if(widget_kind === "row") {
+					layout = RowContainer(null);
+				} else if(widget_kind === "column") {
+					layout = ColumnContainer(null);
+				} else {
+					throw new Error(`Unsupported widget_kind = ${widget_kind}`);
+				}
+				el = generate_container(layout);
+			} else if(widget_type === "element") {
+				let layout;
+				if(widget_kind === "graph") {
+					layout = GraphElement(null, {
+						width: 1,
+						height: 100,
+					});
+				} else if(widget_kind === "table") {
+					layout = TableElement(null, {
+						width: 1,
+						rows: 4,
+						cols: 4,
+					});
+				} else {
+					throw new Error(`Unsupported widget_kind = ${widget_kind}`);
+				}
+				el = generate_element(layout);
+			} else {
+				throw new Error(`Unsupported widget_type = ${widget_type}`);
+			}
+
+			el.widget.parent = placeholder.parentElement.widget;
+			el.widget.parent.children.splice(placeholder.index, 0, el.widget);
+			placeholder.before(el);
+			placeholder.parentElement.classList.remove("empty-container");
+
+			placeholder.parentElement.removeChild(placeholder);
+
+			build_sample_tables();
+			build_sample_graphes();
+			build_layout_tree("#layout-tree .layout-tree-content", layout);
+		}
+	});
+
+	// FIXME: Refactor container to root...
+	const container = document.getElementById("workspace");
+
+	container.addEventListener("dragenter", e => {
+		if(selected_element) selected_element.classList.remove("selected");
+		if(selected_container) selected_container.classList.remove("selected");
+
+		selected_element = find_top_element_with_classname("element", e.target);
+		selected_container = find_top_element_with_classname("container", e.target);
+
+		if(selected_container === null) return;
+		selected_container.classList.add("selected");
+
+		if(selected_element === placeholder) return;
+
+		if(selected_element === null) {
+			// Empty container
+			selected_container.appendChild(placeholder);
+			placeholder.index = 0;
+			return;
+		}
+		selected_element.classList.add("selected");
+
+		if(placeholder.parentElement != null) {
+			placeholder.parentElement.removeChild(placeholder);
+		}
+
+		const container_kind = selected_container.classList.contains("row-container") ? "row" : "column";
+		let there_is_free_width = true;
+		if(container_kind === "row") {
+			const width_span = parseInt(selected_container.getAttribute("width-span") ?? 0);
+			there_is_free_width = width_span + placeholder_width_span <= num_columns;
+		}
+
+		if(selected_element && there_is_free_width) {
+			selected_element.insertAdjacentElement('afterEnd', placeholder);
+			// FIXME: Check for root
+			placeholder.index = [...placeholder.parentElement.children].indexOf(placeholder);
+		}
+	});
+
+	let previous = null;
+	container.addEventListener("dragleave", e => {
+		if(previous != null && previous != placeholder && e.target === container) {
+			if(placeholder.parentElement !== null) {
+				placeholder.parentElement.removeChild(placeholder);
+				console.log(previous, e.target);
+			}
+			previous = null;
+		} else {
+			previous = e.target;
+		}
+	});
+
+	function find_top_element_with_classname(classname, target) {
+		while(true) {
+			if(target === null || target.classList.contains(classname)) return target;
+
+			target = target.parentElement;
+		}
+	}
+
+	function generate_element_wrapper() {
+		const wrapper = document.createElement("div");
+		wrapper.classList.add("element");
+		wrapper.classList.add("widget");
+
+		const options = generate_element_options();
+		wrapper.appendChild(options);
+
+		return wrapper;
+	}
+
+	let open_option;
+	function generate_element_options() {
+		const options = document.createElement("div");
+		options.classList.add("options");
+		options.classList.add("options-list-hidden");
+
+		const icon = document.createElement("span");
+		icon.classList.add("icon");
+		icon.classList.add("icon-three-dots");
+		options.appendChild(icon);
+
+		icon.onclick = () => {
+			if(open_option === options) {
+				options.classList.toggle("options-list-hidden");
+			} else {
+				if(open_option) open_option.classList.add("options-list-hidden");
+				options.classList.remove("options-list-hidden");
+				open_option = options;
+			}
+		}
+
+		const options_list = document.createElement("div");
+		options_list.classList.add("options-list");
+		options.appendChild(options_list);
+
+		const option_item = document.createElement("span");
+		option_item.classList.add("option-item");
+		option_item.innerText = "Remover";
+		options_list.appendChild(option_item);
+
+		option_item.onclick = () => {
+			const element = options.parentElement;
+
+			if(element.widget.parent) {
+				remove_element(element);
+			}
+		}
+
+		return options;
+	}
+</script>
+<script type="module" src="js/main.js"></script>
+</html>

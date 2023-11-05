@@ -1,0 +1,32 @@
+#layout-tree {
+	min-width: 200px;
+}
+
+#layout-tree .layout-tree-title {
+	font-size: 14px;
+	margin-bottom: 4px;
+}
+
+#layout-tree .layout-tree-content {
+	font-size: 12px;
+}
+
+#layout-tree .layout-tree-value {
+	display: flex;
+	align-items: center;
+}
+
+#layout-tree .layout-tree-value .icon {
+	width: 12px;
+	height: 12px;
+	background-color: #444;
+	margin-right: 4px;
+}
+
+#layout-tree .layout-tree-value .icon-toggle-children:hover {
+	cursor: pointer;
+}
+
+#layout-tree .layout-tree-children {
+	margin-left: calc(12px + 4px);
+}
